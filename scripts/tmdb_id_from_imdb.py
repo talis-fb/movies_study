@@ -10,9 +10,6 @@ TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 if not TMDB_API_KEY:
     raise ValueError("TMDB_API_KEY environment variable is not set")
 
-pages_to_fetch = 100
-movie_counter = 1
-
 iterations = 0
 
 def get_movie_id_from_imdb(imdb_id: str) -> str | None:

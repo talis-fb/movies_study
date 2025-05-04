@@ -6,58 +6,43 @@ import json
 import os
 
 TMDB_BASE_URL = 'https://api.themoviedb.org/3'
-TMDB_API_KEY = os.getenv('OMDB_API_KEY')
+TMDB_API_KEY = os.getenv('TMDB_API_KEY')
 
 if not TMDB_API_KEY:
-    raise ValueError("OMDB_API_KEY environment variable is not set")
+    raise ValueError("TMDB_API_KEY environment variable is not set")
 
 pages_to_fetch = 100
 movie_counter = 1
 
 iterations = 0
 
-def get_movie_id_from_imdb(imdb_id) -> str | None:
-    global iterations
-    iterations += 1
-
-    url = f"{TMDB_BASE_URL}/find/{imdb_id}?external_source=imdb_id&api_key={TMDB_API_KEY}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        real_id = data['movie_results'][0]['id']
-        return real_id
-    else:
-        print(f"Error fetching id from imdb_id for movie {imdb_id} on TMDb")
-        return None
-
 def get_movie_details_tmdb(movie_id):
     global iterations
     iterations += 1
 
-    url = f"{TMDB_BASE_URL}/movie/{movie_id}?api_key={TMDB_API_KEY}&language=en-US"
-    response = requests.get(url)
+    url = f"{TMDB_BASE_URL}/movie/{movie_id}"
+    response = requests.get(url, headers={"Authorization": f"Bearer {TMDB_API_KEY}"})
     if response.status_code == 200:
         return response.json()
     else:
-        print(f"Error fetching details for movie {movie_id} on TMDb")
+        print(f"Error fetching details for movie {movie_id} on TMDb: {response.status_code}", file=sys.stderr)
         return None
 
 
 def main():
     writer = csv.writer(sys.stdout)
-    writer.writerow(["id", "response"])
+    writer.writerow(["id", "imdb_id","response"])
 
-    imdb_ids = [line.strip() for line in sys.stdin if line.strip()]
-    for imdb_id_value in imdb_ids:
-        real_id = get_movie_id_from_imdb(imdb_id_value)
-        if not real_id:
-            return
-
-        data = get_movie_details_tmdb(real_id)
+    ids = [line.strip() for line in sys.stdin if line.strip()]
+    for id_value in ids:
+        data = get_movie_details_tmdb(id_value)
         if not data:
             return
 
-        writer.writerow([id_value, json.dumps(data)])
+        imdb_id = data['imdb_id']
+        print(f"{iterations} Ok {imdb_id}: {data['id']}", file=sys.stderr)
+
+        writer.writerow([id_value, imdb_id, json.dumps(data)])
 
 if __name__ == "__main__":
     main()
