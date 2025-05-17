@@ -35,7 +35,7 @@ def main():
     for id_value in ids:
         data = get_movie_details_omdb(id_value)
         if not data:
-            return
+            continue
 
         writer.writerow([id_value, json.dumps(data)])
 
