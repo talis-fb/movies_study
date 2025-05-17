@@ -37,7 +37,7 @@ def main():
     for id_value in ids:
         data = get_movie_details_tmdb(id_value)
         if not data:
-            return
+            continue
 
         imdb_id = data['imdb_id']
         print(f"{iterations} Ok {imdb_id}: {data['id']}", file=sys.stderr)
